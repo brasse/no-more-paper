@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>docstore</h1>
+
+  <div>
+  <a href="{% url docstore.views.document_upload %}">upload file</a>
+  </div>
+
+  <div>
+    <form action="{% url docstore.views.document_search %}" method="get">
+      {{ form.as_p }}
+      <input type="submit" value="Search"/>
+    </form>
+  </div>
+
+  <div>
+  <table border="1">
+    <tr>
+      <th>File name</th><th>Content type</th><th>Tags</th>
+    </tr>
+    {% for document, tags in tagged_documents %}
+      <tr>
+        <td>
+          <a href="{% url docstore.views.document_download document.id %}">
+	    {{ document.file_name }}
+          </a>
+        </td>
+        <td>
+          <a href="{% url docstore.views.document_properties document.id %}">
+            properties
+          </a>
+        </td>
+        <td>{{ document.content_type }}</td>
+        <td>
+          {% for tag in tags %}
+            {{ tag.name }}
+          {% endfor %}
+        </td>
+      </tr>
+    {% endfor %}
+  </table>
+  </div>
+
+{% endblock %}

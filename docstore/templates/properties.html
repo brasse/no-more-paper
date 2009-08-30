@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>properties</h1>
+  <p>
+    {{ document.file_name }}
+  </p>
+  <form action="{% url docstore.views.document_properties document.id %}" 
+        method="post">
+    {{ form.as_p }}
+    <input type="submit" value="Submit" />
+  </form>
+{% endblock %}

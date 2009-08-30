@@ -1,0 +1,29 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+  <head>
+    <title>docstore</title>
+  </head>
+  <body>
+    <div id="header">
+      <p>
+        User: 
+        {% if user.is_authenticated %} 
+          {{ user.username }}
+        {% else %} 
+          Anonymous
+        {% endif %}
+      </p>
+    </div>
+    <div id="messages">
+      <ul>
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div id="content">
+      {% block content %}
+      {% endblock %}
+    </div>
+  </body>
+</html>
