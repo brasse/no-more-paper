@@ -1,13 +1,14 @@
 from __future__ import with_statement
 
 import documents.settings as settings
-from documents.docstore.models import Document
+from documents.docstore.models import Document, NumberSequence
 
 from tagging.forms import TagField
 from tagging.models import Tag, TaggedItem
 from tagging.utils import edit_string_for_tags
 
 from django import forms
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render_to_response
@@ -28,7 +29,7 @@ class DocumentPropertiesForm(forms.Form):
     scan_date = forms.DateTimeField()
     content_type = forms.CharField(max_length=200)
 
-def store_document(uploaded_file, tags):
+def store_document(user, uploaded_file, tags, archive_numbers):
     # save document in DOCUMENTSTORE_PATH
     with open(os.path.join(settings.DOCUMENTSTORE_PATH, 
                            uploaded_file.name), 'wb') as f:
@@ -36,12 +37,26 @@ def store_document(uploaded_file, tags):
             f.write(chunk)
 
     # create Document instance
+    if archive_numbers is not None:
+        archive_numbers_start = user.numbersequence.reserve(archive_numbers)
+    else:
+        archive_numbers_start = None
     d = Document(file_name=uploaded_file.name, 
-                 content_type=uploaded_file.content_type)
+                 content_type=uploaded_file.content_type,
+                 archive_numbers_start=archive_numbers_start,
+                 archive_numbers_length=archive_numbers)
     d.save()
     Tag.objects.update_tags(d, tags)
     
     return d.id
+
+def number_sequence(user):
+    try:
+        seq = user.numbersequence
+    except ObjectDoesNotExist:
+        seq = NumberSequence()
+        seq.user = user
+        seq.save()
 
 def _render_index_page(request, documents, form):
     tagged_documents = ((d, Tag.objects.get_for_object(d)) 
@@ -71,9 +86,15 @@ def upload_confirmation(request):
 
 def document_upload(request):
     if request.method == 'POST':
+        # Make sure that this user has a NumberSequence instance.
+        number_sequence(request.user)
         form = DocumentUploadForm(request.POST, request.FILES)
         if form.is_valid():
-            store_document(request.FILES['file'], form.cleaned_data['tags'])
+            user = request.user
+            archive_numbers = form.cleaned_data['archive_numbers']
+            store_document(user, request.FILES['file'], 
+                           form.cleaned_data['tags'],
+                           archive_numbers)
             return redirect(reverse(upload_confirmation))
     else:
         form = DocumentUploadForm()

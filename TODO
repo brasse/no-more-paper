@@ -1,2 +1,7 @@
+* Document.scan_date should be changed to Document.upload_date or
+  Document.creation_date.
+* Partition document store path on user names. Use a different area
+  for each user.
+* Save using a file name constructed from document id and upload date.
 * Download with correct file name.
-* Archive numbers, request on upload page.
+
