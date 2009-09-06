@@ -71,6 +71,10 @@ TEMPLATE_DIRS = (
     # Don't forget to use absolute paths, not relative paths.
 )
 
+# AUTH
+LOGIN_URL = '/docs/login/'
+LOGIN_REDIRECT_URL = '/docs/'
+
 # tagging settings
 FORCE_LOWERCASE_TAGS = True
 

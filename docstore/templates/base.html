@@ -6,13 +6,13 @@
   <body>
     <div id="header">
       <p>
-        User: 
         {% if user.is_authenticated %} 
-          {{ user.username }}
+          {{ user.username }} | <a href="{% url django.contrib.auth.views.logout %}">Logout</a>
         {% else %} 
-          Anonymous
-        {% endif %}
+          Anonymous | <a href="{% url django.contrib.auth.views.login %}">Login</a>
+        {% endif %} 
       </p>
+      <hr/>
     </div>
     <div id="messages">
       <ul>
