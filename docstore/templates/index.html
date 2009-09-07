@@ -22,7 +22,11 @@
       <tr>
         <td>
           <a href="{% url docstore.views.document_download document.id %}">
-	    {{ document.file_name }}
+            {% if document.title %}
+              {{ document.title }}
+            {% else %}
+              unnamed
+            {% endif %}
           </a>
         </td>
         <td>

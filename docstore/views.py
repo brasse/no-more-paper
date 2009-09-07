@@ -15,6 +15,7 @@ from django.shortcuts import get_object_or_404, redirect, render_to_response
 from django.template import RequestContext
 
 import os
+import time
 
 class SearchForm(forms.Form):
     tags = TagField()
@@ -25,30 +26,40 @@ class DocumentUploadForm(forms.Form):
     archive_numbers = forms.IntegerField(required=False)
 
 class DocumentPropertiesForm(forms.Form):
+    title = forms.CharField(max_length=200, required=False)
     tags = TagField(required=False)
-    scan_date = forms.DateTimeField()
+    creation_time = forms.DateTimeField()
     content_type = forms.CharField(max_length=200)
 
-def store_document(user, uploaded_file, tags, archive_numbers):
-    # save document in DOCUMENTSTORE_PATH
-    with open(os.path.join(settings.DOCUMENTSTORE_PATH, 
-                           uploaded_file.name), 'wb') as f:
-        for chunk in uploaded_file.chunks():
-            f.write(chunk)
+def prepare_path(document_id, creation_time, user_name):
+    date_str = time.strftime('%Y%m%d', creation_time)
+    time_str = time.strftime('%H%M%S', creation_time)
+    dir = os.path.join(settings.DOCUMENTSTORE_PATH, user_name, date_str)
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+    return os.path.join(dir, '%s%s-%d.pdf' % (date_str, time_str, document_id))
 
+def store_document(user, uploaded_file, tags, archive_numbers):
     # create Document instance
     if archive_numbers is not None:
         archive_numbers_start = user.numbersequence.reserve(archive_numbers)
     else:
         archive_numbers_start = None
-    d = Document(file_name=uploaded_file.name, 
+    d = Document(store_path='NOT SET', 
                  content_type=uploaded_file.content_type,
                  archive_numbers_start=archive_numbers_start,
                  archive_numbers_length=archive_numbers)
     d.save()
     Tag.objects.update_tags(d, tags)
-    
-    return d.id
+
+    # save document in DOCUMENTSTORE_PATH
+    save_path = prepare_path(d.id, d.creation_time.timetuple(), user.username)
+    with open(save_path, 'wb') as f:
+        for chunk in uploaded_file.chunks():
+            f.write(chunk)
+
+    d.store_path = save_path
+    d.save()
 
 def number_sequence(user):
     try:
@@ -104,7 +115,7 @@ def document_upload(request):
 def document_download(request, id):
     document = get_object_or_404(Document, id=id)
     with open(os.path.join(settings.DOCUMENTSTORE_PATH, 
-                           document.file_name)) as f:
+                           document.store_path)) as f:
         content_type = document.content_type
         if not content_type:
             content_type = 'application/octet-stream'
@@ -115,7 +126,8 @@ def document_properties(request, id):
     if request.method == 'POST':
         form = DocumentPropertiesForm(request.POST)
         if form.is_valid():
-            document.scan_date = form.cleaned_data['scan_date']
+            document.title = form.cleaned_data['title']
+            document.creation_time = form.cleaned_data['creation_time']
             document.content_type = form.cleaned_data['content_type']
             document.save()
             Tag.objects.update_tags(document, form.cleaned_data['tags'])
@@ -123,8 +135,9 @@ def document_properties(request, id):
             return redirect(reverse(document_properties, args=[id]))
     else:
         tag_string = edit_string_for_tags(Tag.objects.get_for_object(document))
-        form = DocumentPropertiesForm(dict(tags=tag_string,
-                                           scan_date=document.scan_date,
+        form = DocumentPropertiesForm(dict(title=document.title, 
+                                           tags=tag_string,
+                                           creation_time=document.creation_time,
                                            content_type=document.content_type))
     return render_to_response('properties.html', 
                               dict(document=document,

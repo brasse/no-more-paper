@@ -1,12 +1,15 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+import os
+
 class Document(models.Model):
-    file_name = models.CharField(max_length=200)
-    scan_date = models.DateTimeField(auto_now_add=True)
+    store_path = models.CharField(max_length=200)
+    creation_time = models.DateTimeField(auto_now_add=True)
     content_type = models.CharField(max_length=200)
     archive_numbers_start = models.IntegerField(null=True, blank=True)
     archive_numbers_length = models.IntegerField(null=True, blank=True)
+    title = models.CharField(max_length=200, null=True, blank=True)
 
     def archive_numbers_string(self):
         if (self.archive_numbers_length is None or 
@@ -20,7 +23,10 @@ class Document(models.Model):
                               self.archive_numbers_length - 1)
 
     def __unicode__(self):
-        return self.file_name
+        if self.title:
+            return self.title
+        else:
+            return os.path.basename(self.store_path)
 
 class NumberSequence(models.Model):
     user = models.OneToOneField(User)

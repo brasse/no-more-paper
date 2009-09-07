@@ -2,8 +2,9 @@
 {% block content %}
   <h1>properties</h1>
   <p>
-    {{ document.file_name }}, {{ document.archive_numbers_string }}
+    XXX, {{ document.archive_numbers_string }}
   </p>
+  <p><i>{{ document.store_path }}</i></p>
   <form action="{% url docstore.views.document_properties document.id %}" 
         method="post">
     {{ form.as_p }}
