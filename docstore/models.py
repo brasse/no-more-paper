@@ -6,7 +6,6 @@ import os
 class Document(models.Model):
     store_path = models.CharField(max_length=200)
     creation_time = models.DateTimeField(auto_now_add=True)
-    content_type = models.CharField(max_length=200)
     archive_numbers_start = models.IntegerField(null=True, blank=True)
     archive_numbers_length = models.IntegerField(null=True, blank=True)
     title = models.CharField(max_length=200, null=True, blank=True)

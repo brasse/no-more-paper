@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from __future__ import with_statement
 
 import documents.settings as settings
@@ -30,7 +29,6 @@ class DocumentPropertiesForm(forms.Form):
     title = forms.CharField(max_length=200, required=False)
     tags = TagField(required=False)
     creation_time = forms.DateTimeField()
-    content_type = forms.CharField(max_length=200)
 
 def prepare_path(document_id, creation_time, user_name):
     date_str = time.strftime('%Y%m%d', creation_time)
@@ -47,7 +45,6 @@ def store_document(user, uploaded_file, tags, archive_numbers):
     else:
         archive_numbers_start = None
     d = Document(store_path='NOT SET', 
-                 content_type=uploaded_file.content_type,
                  archive_numbers_start=archive_numbers_start,
                  archive_numbers_length=archive_numbers)
     d.save()
@@ -101,13 +98,16 @@ def document_upload(request):
         # Make sure that this user has a NumberSequence instance.
         number_sequence(request.user)
         form = DocumentUploadForm(request.POST, request.FILES)
-        if form.is_valid():
-            user = request.user
-            archive_numbers = form.cleaned_data['archive_numbers']
-            store_document(user, request.FILES['file'], 
-                           form.cleaned_data['tags'],
-                           archive_numbers)
-            return redirect(reverse(upload_confirmation))
+        if (form.is_valid()):
+            file = request.FILES['file']
+            if file.content_type == 'application/pdf':
+                user = request.user
+                archive_numbers = form.cleaned_data['archive_numbers']
+                store_document(user, file, form.cleaned_data['tags'], 
+                               archive_numbers)
+                return redirect(reverse(upload_confirmation))
+            else:
+                form.errors['file'] = ['File must be a PDF document.']
     else:
         form = DocumentUploadForm()
     return render_to_response('upload.html', dict(form=form),
@@ -138,7 +138,6 @@ def document_properties(request, id):
         if form.is_valid():
             document.title = form.cleaned_data['title']
             document.creation_time = form.cleaned_data['creation_time']
-            document.content_type = form.cleaned_data['content_type']
             document.save()
             Tag.objects.update_tags(document, form.cleaned_data['tags'])
             request.user.message_set.create(message='Updated properties.')
@@ -147,8 +146,7 @@ def document_properties(request, id):
         tag_string = edit_string_for_tags(Tag.objects.get_for_object(document))
         form = DocumentPropertiesForm(dict(title=document.title, 
                                            tags=tag_string,
-                                           creation_time=document.creation_time,
-                                           content_type=document.content_type))
+                                           creation_time=document.creation_time))
     return render_to_response('properties.html', 
                               dict(document=document,
                                    form=form),
