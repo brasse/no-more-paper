@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import with_statement
 
 import documents.settings as settings
@@ -112,15 +113,24 @@ def document_upload(request):
     return render_to_response('upload.html', dict(form=form),
                               context_instance=RequestContext(request))
 
-def document_download(request, id):
+def document_download(request, id, name=None):
     document = get_object_or_404(Document, id=id)
-    with open(os.path.join(settings.DOCUMENTSTORE_PATH, 
-                           document.store_path)) as f:
-        content_type = document.content_type
-        if not content_type:
-            content_type = 'application/octet-stream'
-        return HttpResponse(f.read(), mimetype=content_type)
-              
+    if name is None:
+        # Redirect this to an url with a decent file name.
+        if document.title is None:
+            file_name = os.path.basename(document.store_path)
+        else:
+            # Translate document title to a safe(?) file name.
+            # This need more thought. How can we derive a portable file
+            # name from the document title?
+            table = {ord(' ') : u'_', ord("'") : u'_'}
+            file_name = '%s.pdf' % document.title.translate(table).lower()
+        return redirect(reverse('download-named', args=[id, file_name]))
+    else:
+        with open(os.path.join(settings.DOCUMENTSTORE_PATH, 
+                               document.store_path)) as f:
+            return HttpResponse(f.read(), mimetype='application/pdf')
+
 def document_properties(request, id):
     document = get_object_or_404(Document, id=id)
     if request.method == 'POST':
