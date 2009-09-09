@@ -1,15 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
-  <h1>docstore</h1>
-
-  <div>
-  <a href="{% url docstore.views.document_upload %}">upload file</a>
-  </div>
-
   <div>
     <form action="{% url docstore.views.document_search %}" method="get">
       {{ form.as_p }}
-      <input type="submit" value="Search"/>
+      <p><input type="submit" value="Search"/></p>
     </form>
   </div>
 

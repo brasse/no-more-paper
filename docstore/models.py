@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 import os
 
 class Document(models.Model):
+    user = models.ForeignKey(User)
     store_path = models.CharField(max_length=200)
     creation_time = models.DateTimeField(auto_now_add=True)
     archive_numbers_start = models.IntegerField(null=True, blank=True)

@@ -1,10 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
-  <h1>upload</h1>
-
+  <h2>upload</h2>
   <form oaction="{% url docstore.views.document_upload %}" 
         method="post" enctype="multipart/form-data">
     {{ form.as_p }}
-    <input type="submit" value="Submit" />
+    <p><input type="submit" value="Submit"/></p>
   </form>
 {% endblock %}

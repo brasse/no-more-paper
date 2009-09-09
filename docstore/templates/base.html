@@ -5,13 +5,19 @@
   </head>
   <body>
     <div id="header">
-      <p>
+      <a href="{% url docstore.views.index %}">
+        <h1 style="display: inline;">docstore</h1></a>
+      <span>
         {% if user.is_authenticated %} 
           {{ user.username }} | <a href="{% url django.contrib.auth.views.logout %}">Logout</a>
         {% else %} 
           Anonymous | <a href="{% url django.contrib.auth.views.login %}">Login</a>
         {% endif %} 
-      </p>
+      </span>
+      <div>
+        <a href="{% url docstore.views.index %}">home</a> | 
+        <a href="{% url docstore.views.document_upload %}">upload</a>
+      </div>
       <hr/>
     </div>
     <div id="messages">

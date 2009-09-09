@@ -8,6 +8,7 @@ from tagging.models import Tag, TaggedItem
 from tagging.utils import edit_string_for_tags
 
 from django import forms
+from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator
 from django.core.urlresolvers import reverse
@@ -45,7 +46,7 @@ def store_document(user, uploaded_file, tags, archive_numbers):
         archive_numbers_start = user.numbersequence.reserve(archive_numbers)
     else:
         archive_numbers_start = None
-    d = Document(store_path='NOT SET', 
+    d = Document(user=user, store_path='NOT SET', 
                  archive_numbers_start=archive_numbers_start,
                  archive_numbers_length=archive_numbers)
     d.save()
@@ -87,24 +88,29 @@ def _render_index_page(request, document_list, form):
                               dict(documents=documents, form=form),
                               context_instance=RequestContext(request))
 
+@login_required
 def index(request):
-    documents = Document.objects.all()
+    documents = Document.objects.filter(user=request.user)
     form = SearchForm()
     return _render_index_page(request, documents, form)
 
+@login_required
 def document_search(request):
     form = SearchForm(request.GET)
     if form.is_valid():
-        documents = TaggedItem.objects.get_by_model(Document, 
+        all_documents = Document.objects.filter(user=request.user)
+        documents = TaggedItem.objects.get_by_model(all_documents, 
                                                     form.cleaned_data['tags'])
     else:
         documents = []
     return _render_index_page(request, documents, form)
 
+@login_required
 def upload_confirmation(request):
     return render_to_response('confirmation.html',
                               context_instance=RequestContext(request))
 
+@login_required
 def document_upload(request):
     if request.method == 'POST':
         # Make sure that this user has a NumberSequence instance.
@@ -125,8 +131,9 @@ def document_upload(request):
     return render_to_response('upload.html', dict(form=form),
                               context_instance=RequestContext(request))
 
+@login_required
 def document_download(request, id, name=None):
-    document = get_object_or_404(Document, id=id)
+    document = get_object_or_404(Document, user=request.user, id=id)
     if name is None:
         # Redirect this to an url with a decent file name.
         if document.title is None:
@@ -143,8 +150,9 @@ def document_download(request, id, name=None):
                                document.store_path)) as f:
             return HttpResponse(f.read(), mimetype='application/pdf')
 
+@login_required
 def document_properties(request, id):
-    document = get_object_or_404(Document, id=id)
+    document = get_object_or_404(Document, user=request.user, id=id)
     if request.method == 'POST':
         form = DocumentPropertiesForm(request.POST)
         if form.is_valid():
