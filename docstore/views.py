@@ -9,6 +9,7 @@ from tagging.utils import edit_string_for_tags
 
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.paginator import Paginator
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render_to_response
@@ -67,12 +68,23 @@ def number_sequence(user):
         seq.user = user
         seq.save()
 
-def _render_index_page(request, documents, form):
-    tagged_documents = ((d, Tag.objects.get_for_object(d)) 
-                        for d in documents)
+def _render_index_page(request, document_list, form):
+    paginator = Paginator(document_list, 20)
+
+    # Make sure page request is an int. If not, deliver first page.
+    try:
+        page = int(request.GET.get('page', 1))
+    except ValueError:
+        page = 1
+
+    # If page request is out of range, deliver last page of results.
+    if page > paginator.num_pages:
+        page = paginator.num_pages
+
+    documents = paginator.page(page)
+
     return render_to_response('index.html', 
-                              dict(tagged_documents=tagged_documents,
-                                   form=form),
+                              dict(documents=documents, form=form),
                               context_instance=RequestContext(request))
 
 def index(request):
