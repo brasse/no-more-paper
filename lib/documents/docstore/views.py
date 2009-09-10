@@ -35,10 +35,12 @@ class DocumentPropertiesForm(forms.Form):
 def prepare_path(document_id, creation_time, user_name):
     date_str = time.strftime('%Y%m%d', creation_time)
     time_str = time.strftime('%H%M%S', creation_time)
-    dir = os.path.join(settings.DOCUMENTSTORE_PATH, user_name, date_str)
+    relative_path = os.path.join(user_name, date_str)
+    dir = os.path.join(settings.DOCUMENTSTORE_PATH, relative_path)
     if not os.path.exists(dir):
         os.makedirs(dir)
-    return os.path.join(dir, '%s%s-%d.pdf' % (date_str, time_str, document_id))
+    return os.path.join(relative_path, 
+                        '%s%s-%d.pdf' % (date_str, time_str, document_id))
 
 def store_document(user, uploaded_file, tags, archive_numbers):
     # create Document instance
@@ -53,12 +55,14 @@ def store_document(user, uploaded_file, tags, archive_numbers):
     Tag.objects.update_tags(d, tags)
 
     # save document in DOCUMENTSTORE_PATH
-    save_path = prepare_path(d.id, d.creation_time.timetuple(), user.username)
-    with open(save_path, 'wb') as f:
+    relative_path =  prepare_path(d.id, d.creation_time.timetuple(), 
+                                  user.username)
+    with open(os.path.join(settings.DOCUMENTSTORE_PATH, 
+                           relative_path), 'wb') as f:
         for chunk in uploaded_file.chunks():
             f.write(chunk)
 
-    d.store_path = save_path
+    d.store_path = relative_path
     d.save()
 
 def number_sequence(user):
