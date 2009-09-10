@@ -3,6 +3,8 @@ from __future__ import with_statement
 import documents.settings as settings
 from documents.docstore.models import Document, NumberSequence
 
+from PythonMagick import Image
+
 from tagging.forms import TagField
 from tagging.models import Tag, TaggedItem
 from tagging.utils import edit_string_for_tags
@@ -12,10 +14,11 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render_to_response
 from django.template import RequestContext
 
+import itertools
 import os
 import time
 
@@ -42,6 +45,27 @@ def prepare_path(document_id, creation_time, user_name):
     return os.path.join(relative_path, 
                         '%s%s-%d.pdf' % (date_str, time_str, document_id))
 
+def generate_thumbs(pdf, thumb_width):
+    '''
+    Genrate thumbnails of pdf and return the number of thumbnails created.
+    '''
+    root, ext = os.path.splitext(pdf)
+    if ext != '.pdf':
+        return 0
+    try:
+        for i in itertools.count():
+            # If root (wich is unicode) contains any characters that can't
+            # be converted by str() we will crash and burn. This needs to
+            # become more robust.
+            img = Image(str('%s.pdf[%d]' % (root, i)))
+            img.scale('%d' % thumb_width)
+            img.write(str('%s-thumb%03d.png' % (root, i)))
+    except RuntimeError:
+        # Assume that we have reached the last page and that therefore
+        # the Image ctor failed.
+        pass
+    return i
+
 def store_document(user, uploaded_file, tags, archive_numbers):
     # create Document instance
     if archive_numbers is not None:
@@ -57,13 +81,15 @@ def store_document(user, uploaded_file, tags, archive_numbers):
     # save document in DOCUMENTSTORE_PATH
     relative_path =  prepare_path(d.id, d.creation_time.timetuple(), 
                                   user.username)
-    with open(os.path.join(settings.DOCUMENTSTORE_PATH, 
-                           relative_path), 'wb') as f:
+    full_path = os.path.join(settings.DOCUMENTSTORE_PATH, relative_path)
+    with open(full_path, 'wb') as f:
         for chunk in uploaded_file.chunks():
             f.write(chunk)
 
     d.store_path = relative_path
     d.save()
+
+    generate_thumbs(full_path, settings.THUMB_WIDTH)
 
 def number_sequence(user):
     try:
@@ -74,7 +100,8 @@ def number_sequence(user):
         seq.save()
 
 def _render_index_page(request, document_list, form):
-    paginator = Paginator(document_list, 20)
+    paginator = Paginator(document_list, 
+                          settings.THUMB_COLUMNS * settings.THUMB_ROWS)
 
     # Make sure page request is an int. If not, deliver first page.
     try:
@@ -88,8 +115,11 @@ def _render_index_page(request, document_list, form):
 
     documents = paginator.page(page)
 
+    use_thumbs = 'thumbs' in request.GET
     return render_to_response('index.html', 
-                              dict(documents=documents, form=form),
+                              dict(documents=documents, 
+                                   form=form, use_thumbs=use_thumbs,
+                                   columns=settings.THUMB_COLUMNS),
                               context_instance=RequestContext(request))
 
 @login_required
@@ -175,3 +205,18 @@ def document_properties(request, id):
                               dict(document=document,
                                    form=form),
                               context_instance=RequestContext(request))
+
+@login_required
+def document_thumbnail(request, id):
+    document = get_object_or_404(Document, user=request.user, id=id)
+    try:
+        n = int(request.GET.get('n', 0))
+    except:
+        n = 0
+    root, ext = os.path.splitext(document.store_path)
+    thumb_path = os.path.join(settings.DOCUMENTSTORE_PATH, 
+                              '%s-thumb%03d.png' % (root, n))
+    if not os.path.exists(thumb_path):
+        raise Http404
+    with open(thumb_path) as f:
+        return HttpResponse(f.read(), mimetype='image/png')

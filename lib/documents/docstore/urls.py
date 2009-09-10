@@ -14,5 +14,6 @@ urlpatterns += patterns('documents.docstore.views',
     url(r'^download/(\d+)/$', 'document_download', name='download'),
     url(r'^download/(\d+)/(.+)$', 'document_download', name='download-named'),
     (r'^properties/(\d+)/$', 'document_properties'),
+    (r'^thumb/(\d+)/$', 'document_thumbnail'),
     (r'^search/$', 'document_search'),
 )

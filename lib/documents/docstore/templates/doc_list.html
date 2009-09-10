@@ -1,0 +1,28 @@
+  <table border="1">
+    <tr>
+      <th>File name</th><th>Content type</th><th>Tags</th>
+    </tr>
+    {% for document in documents.object_list %}
+      <tr>
+        <td>
+          <a href="{% url documents.docstore.views.document_download document.id %}">
+            {% if document.title %}
+              {{ document.title }}
+            {% else %}
+              unnamed
+            {% endif %}
+          </a>
+        </td>
+        <td>
+          <a href="{% url documents.docstore.views.document_properties document.id %}">
+            properties
+          </a>
+        </td>
+        <td>
+          {% for tag in document.tags %}
+            {{ tag.name }}
+          {% endfor %}
+        </td>
+      </tr>
+    {% endfor %}
+  </table>

@@ -1,0 +1,23 @@
+{% load partition %}
+<table border="1">
+  {% for row in documents.object_list|partition_horizontal:columns %}
+    <tr>
+      {% for document in row %}
+        <td>
+          <div>
+            <a href="{% url documents.docstore.views.document_download document.id %}">
+              {% if document.title %}
+                {{ document.title }}
+              {% else %}
+                unnamed
+              {% endif %}
+            </a>
+          </div>
+          <a href="{% url documents.docstore.views.document_properties document.id %}">
+            <img src="{% url documents.docstore.views.document_thumbnail document.id %}"/>
+          </a>
+        </td>
+      {% endfor %}
+    </tr>
+  {% endfor %}
+</table>

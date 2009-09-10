@@ -80,6 +80,9 @@ FORCE_LOWERCASE_TAGS = True
 
 # docstore settings
 DOCUMENTSTORE_PATH = '/home/brasse/django-projects/documents/thedocuments'
+THUMB_WIDTH = 120
+THUMB_COLUMNS = 3
+THUMB_ROWS = 2
 
 INSTALLED_APPS = (
     'django.contrib.auth',
