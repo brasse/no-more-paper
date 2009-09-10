@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
   <div>
-    <form action="{% url docstore.views.document_search %}" method="get">
+    <form action="{% url documents.docstore.views.document_search %}" 
+          method="get">
       {{ form.as_p }}
       <p><input type="submit" value="Search"/></p>
     </form>
@@ -14,7 +15,7 @@
     {% for document in documents.object_list %}
       <tr>
         <td>
-          <a href="{% url docstore.views.document_download document.id %}">
+          <a href="{% url documents.docstore.views.document_download document.id %}">
             {% if document.title %}
               {{ document.title }}
             {% else %}
@@ -23,7 +24,7 @@
           </a>
         </td>
         <td>
-          <a href="{% url docstore.views.document_properties document.id %}">
+          <a href="{% url documents.docstore.views.document_properties document.id %}">
             properties
           </a>
         </td>

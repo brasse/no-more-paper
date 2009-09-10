@@ -5,7 +5,7 @@
     Archive numbers: {{ document.archive_numbers_string }}
   </p>
   <p><i>{{ document.store_path }}</i></p>
-  <form action="{% url docstore.views.document_properties document.id %}" 
+  <form action="{% url documents.docstore.views.document_properties document.id %}" 
         method="post">
     {{ form.as_p }}
     <input type="submit" value="Submit" />

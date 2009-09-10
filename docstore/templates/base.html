@@ -5,7 +5,7 @@
   </head>
   <body>
     <div id="header">
-      <a href="{% url docstore.views.index %}">
+      <a href="{% url documents.docstore.views.index %}">
         <h1 style="display: inline;">docstore</h1></a>
       <span>
         {% if user.is_authenticated %} 
@@ -15,8 +15,8 @@
         {% endif %} 
       </span>
       <div>
-        <a href="{% url docstore.views.index %}">home</a> | 
-        <a href="{% url docstore.views.document_upload %}">upload</a>
+        <a href="{% url documents.docstore.views.index %}">home</a> | 
+        <a href="{% url documents.docstore.views.document_upload %}">upload</a>
       </div>
       <hr/>
     </div>
