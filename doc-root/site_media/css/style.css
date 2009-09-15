@@ -1,0 +1,9 @@
+body {
+  font:11px/1.33 Verdana, sans-serif;
+}
+
+#content {
+  margin:10px auto;
+  position:relative;
+  width:780px;
+}

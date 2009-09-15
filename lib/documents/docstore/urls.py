@@ -1,4 +1,5 @@
 from django.conf.urls.defaults import *
+from django.conf import settings
 
 urlpatterns = patterns('django.contrib.auth.views',
     (r'^login/$', 'login', 
@@ -17,3 +18,9 @@ urlpatterns += patterns('documents.docstore.views',
     (r'^thumb/(\d+)/$', 'document_thumbnail'),
     (r'^search/$', 'document_search'),
 )
+
+if settings.DEBUG:
+    urlpatterns += patterns('',
+        (r'site_media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': '/home/roadkill/development/brasse/docstore/trunk/doc-root/site_media'}),
+    )
+
