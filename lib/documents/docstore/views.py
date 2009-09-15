@@ -74,7 +74,8 @@ def store_document(user, uploaded_file, tags, archive_numbers):
         archive_numbers_start = None
     d = Document(user=user, store_path='NOT SET', 
                  archive_numbers_start=archive_numbers_start,
-                 archive_numbers_length=archive_numbers)
+                 archive_numbers_length=archive_numbers,
+                 title=uploaded_file.name)
     d.save()
     Tag.objects.update_tags(d, tags)
 
