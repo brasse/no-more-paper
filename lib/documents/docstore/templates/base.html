@@ -5,32 +5,34 @@
     <link rel="stylesheet" href="/site_media/css/style.css" type="text/css" />
   </head>
   <body>
-    <div id="header">
-      <a href="{% url documents.docstore.views.index %}">
-        <h1 style="display: inline;">docstore</h1></a>
-      <span>
-        {% if user.is_authenticated %} 
-          {{ user.username }} | <a href="{% url django.contrib.auth.views.logout %}">Logout</a>
-        {% else %} 
-          Anonymous | <a href="{% url django.contrib.auth.views.login %}">Login</a>
-        {% endif %} 
-      </span>
-      <div>
-        <a href="{% url documents.docstore.views.index %}">home</a> | 
-        <a href="{% url documents.docstore.views.document_upload %}">upload</a>
+    <div id="wrapper">
+      <div id="header">
+        <a href="{% url documents.docstore.views.index %}">
+          <h1 style="display: inline;">docstore</h1></a>
+        <div id="header-bottom">
+          <ul>
+            {% if user.is_authenticated %} 
+              <li>{{ user.username }} </li>
+              <li><a href="{% url django.contrib.auth.views.logout %}">Logout</a></li>
+              <li><a href="{% url documents.docstore.views.index %}">home</a></li>
+              <li><a href="{% url documents.docstore.views.document_upload %}">upload</a></li>
+            {% else %} 
+              <li><a href="{% url django.contrib.auth.views.login %}">Login</a></li>
+            {% endif %}         
+          </ul>
+        </div>
       </div>
-      <hr/>
-    </div>
-    <div id="messages">
-      <ul>
-        {% for message in messages %}
-          <li>{{ message }}</li>
-        {% endfor %}
-      </ul>
-    </div>
-    <div id="content">
-      {% block content %}
-      {% endblock %}
+      <div id="messages">
+        <ul>
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div id="content">
+        {% block content %}
+        {% endblock %}
+      </div>
     </div>
   </body>
 </html>

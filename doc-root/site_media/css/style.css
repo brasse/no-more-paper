@@ -1,9 +1,29 @@
 body {
+  margin: 0;
+  padding: 0;
+  background-color: #CDD7B6;
   font:11px/1.33 Verdana, sans-serif;
 }
 
-#content {
-  margin:10px auto;
-  position:relative;
-  width:780px;
+#wrapper {
+  background-color: #FFFFFF;
+  color: black;
+  margin: 0px 15px 10px 15px;
+  padding: 10px;
 }
+
+#header-bottom {
+  border-top: 1px solid #4C8579;
+  border-bottom: 1px solid #4C8579;
+}
+
+#header-bottom ul {
+  margin: 0;
+  padding: 0 30px 0 0;
+  text-align: left;
+}
+
+#header-bottom li {
+  display: inline;
+}
+
