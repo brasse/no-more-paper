@@ -45,7 +45,7 @@ MEDIA_URL = ''
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
 # Examples: "http://foo.com/media/", "/media/".
-ADMIN_MEDIA_PREFIX = '/media/'
+ADMIN_MEDIA_PREFIX = '/media/admin/'
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = '$2uh&q@^a$cxy2*_awgcyfv)$6h*3nlt*74n_z$^1-3t3-ope4'
@@ -72,8 +72,8 @@ TEMPLATE_DIRS = (
 )
 
 # AUTH
-LOGIN_URL = '/docs/login/'
-LOGIN_REDIRECT_URL = '/docs/'
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
 
 # tagging settings
 FORCE_LOWERCASE_TAGS = True
