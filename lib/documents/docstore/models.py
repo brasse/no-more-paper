@@ -13,6 +13,9 @@ class Document(models.Model):
     archive_numbers_length = models.IntegerField(null=True, blank=True)
     title = models.CharField(max_length=200, null=True, blank=True)
 
+    class Meta:
+        ordering = ('-creation_time',)
+
     def tags(self):
         return Tag.objects.get_for_object(self)
 
