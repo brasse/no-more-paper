@@ -26,6 +26,8 @@ class SearchForm(forms.Form):
     tags = TagField()
 
 class DocumentUploadForm(forms.Form):
+    title_from_file_name = forms.BooleanField(required=False, initial=True)
+    title = forms.CharField(required=False)
     tags = TagField(required=False)
     file = forms.FileField()
     archive_numbers = forms.IntegerField(required=False)
@@ -66,7 +68,7 @@ def generate_thumbs(pdf, thumb_width):
         pass
     return i
 
-def store_document(user, uploaded_file, tags, archive_numbers):
+def store_document(user, uploaded_file, title, tags, archive_numbers):
     # create Document instance
     if archive_numbers is not None:
         archive_numbers_start = user.numbersequence.reserve(archive_numbers)
@@ -74,8 +76,8 @@ def store_document(user, uploaded_file, tags, archive_numbers):
         archive_numbers_start = None
     d = Document(user=user, store_path='NOT SET', 
                  archive_numbers_start=archive_numbers_start,
-                 archive_numbers_length=archive_numbers,
-                 title=uploaded_file.name)
+                 archive_numbers_length=archive_numbers, 
+                 title=title)
     d.save()
     Tag.objects.update_tags(d, tags)
 
@@ -156,7 +158,13 @@ def document_upload(request):
             if file.content_type == 'application/pdf':
                 user = request.user
                 archive_numbers = form.cleaned_data['archive_numbers']
-                store_document(user, file, form.cleaned_data['tags'], 
+                if form.cleaned_data['title_from_file_name']:
+                    title = os.path.splitext(file.name)[0]
+                elif form.cleaned_data['title'] != '':
+                    title = form.cleaned_data['title']
+                else:
+                    title = None
+                store_document(user, file, title, form.cleaned_data['tags'], 
                                archive_numbers)
                 return redirect(reverse(upload_confirmation))
             else:
