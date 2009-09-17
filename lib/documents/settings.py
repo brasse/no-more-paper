@@ -1,5 +1,9 @@
 # Django settings for documents project.
 
+import os
+def here(*x):
+    return os.path.join(os.path.abspath(os.path.dirname(__file__)), *x)
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
@@ -10,7 +14,7 @@ ADMINS = (
 MANAGERS = ADMINS
 
 DATABASE_ENGINE = 'sqlite3'           # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-DATABASE_NAME = 'documents.db'             # Or path to database file if using sqlite3.
+DATABASE_NAME = here('..', '..', 'documents.db')             # Or path to database file if using sqlite3.
 DATABASE_USER = ''             # Not used with sqlite3.
 DATABASE_PASSWORD = ''         # Not used with sqlite3.
 DATABASE_HOST = ''             # Set to empty string for localhost. Not used with sqlite3.
@@ -79,10 +83,12 @@ LOGIN_REDIRECT_URL = '/'
 FORCE_LOWERCASE_TAGS = True
 
 # docstore settings
-DOCUMENTSTORE_PATH = '/home/brasse/django-projects/documents/thedocuments'
+DOCUMENTSTORE_PATH = here('..', '..', 'thedocuments')
 THUMB_WIDTH = 120
 THUMB_COLUMNS = 3
 THUMB_ROWS = 2
+
+DEBUG_SITE_MEDIA = here('..', '..', 'doc-root', 'site_media')
 
 INSTALLED_APPS = (
     'django.contrib.auth',

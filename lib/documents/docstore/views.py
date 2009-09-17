@@ -1,6 +1,5 @@
 from __future__ import with_statement
 
-import documents.settings as settings
 from documents.docstore.models import Document, NumberSequence
 
 from PythonMagick import Image
@@ -10,6 +9,7 @@ from tagging.models import Tag, TaggedItem
 from tagging.utils import edit_string_for_tags
 
 from django import forms
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator

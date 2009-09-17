@@ -5,7 +5,7 @@
       {% for document in row %}
         <td>
           <div>
-            <a href="{% url documents.docstore.views.document_download document.id %}">
+            <a href="{% url documents.docstore.views.document_download document.id %}" target="_blank">
               {% if document.title %}
                 {{ document.title }}
               {% else %}

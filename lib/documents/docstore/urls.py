@@ -21,6 +21,7 @@ urlpatterns += patterns('documents.docstore.views',
 
 if settings.DEBUG:
     urlpatterns += patterns('',
-        (r'site_media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': '/home/roadkill/development/brasse/docstore/trunk/doc-root/site_media'}),
+        (r'site_media/(?P<path>.*)$', 'django.views.static.serve', 
+         {'document_root': settings.DEBUG_SITE_MEDIA}),
     )
 
