@@ -1,8 +1,7 @@
 from __future__ import with_statement
 
 from documents.docstore.models import Document, NumberSequence
-
-from PythonMagick import Image
+from documents.docstore import docstore
 
 from tagging.forms import TagField
 from tagging.models import Tag, TaggedItem
@@ -18,9 +17,7 @@ from django.http import HttpResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render_to_response
 from django.template import RequestContext
 
-import itertools
 import os
-import time
 
 class SearchForm(forms.Form):
     tags = TagField()
@@ -37,39 +34,7 @@ class DocumentPropertiesForm(forms.Form):
     tags = TagField(required=False)
     creation_time = forms.DateTimeField()
 
-def prepare_path(document_id, creation_time, user_name):
-    date_str = time.strftime('%Y%m%d', creation_time)
-    time_str = time.strftime('%H%M%S', creation_time)
-    relative_path = os.path.join(user_name, date_str)
-    dir = os.path.join(settings.DOCUMENTSTORE_PATH, relative_path)
-    if not os.path.exists(dir):
-        os.makedirs(dir)
-    return os.path.join(relative_path, 
-                        '%s%s-%d.pdf' % (date_str, time_str, document_id))
-
-def generate_thumbs(pdf, thumb_width):
-    '''
-    Genrate thumbnails of pdf and return the number of thumbnails created.
-    '''
-    root, ext = os.path.splitext(pdf)
-    if ext != '.pdf':
-        return 0
-    try:
-        for i in itertools.count():
-            # If root (wich is unicode) contains any characters that can't
-            # be converted by str() we will crash and burn. This needs to
-            # become more robust.
-            img = Image(str('%s.pdf[%d]' % (root, i)))
-            img.scale('%d' % thumb_width)
-            img.write(str('%s-thumb%03d.png' % (root, i)))
-    except RuntimeError:
-        # Assume that we have reached the last page and that therefore
-        # the Image ctor failed.
-        pass
-    return i
-
-def store_document(user, uploaded_file, title, tags, archive_numbers):
-    # create Document instance
+def create_document(user, uploaded_file, title, tags, archive_numbers):
     if archive_numbers is not None:
         archive_numbers_start = user.numbersequence.reserve(archive_numbers)
     else:
@@ -81,18 +46,11 @@ def store_document(user, uploaded_file, title, tags, archive_numbers):
     d.save()
     Tag.objects.update_tags(d, tags)
 
-    # save document in DOCUMENTSTORE_PATH
-    relative_path =  prepare_path(d.id, d.creation_time.timetuple(), 
-                                  user.username)
-    full_path = os.path.join(settings.DOCUMENTSTORE_PATH, relative_path)
-    with open(full_path, 'wb') as f:
-        for chunk in uploaded_file.chunks():
-            f.write(chunk)
+    relative_path = docstore.store(uploaded_file, user.username, d.id,  
+                                   d.creation_time.timetuple())
 
     d.store_path = relative_path
     d.save()
-
-    generate_thumbs(full_path, settings.THUMB_WIDTH)
 
 def number_sequence(user):
     try:
@@ -164,8 +122,8 @@ def document_upload(request):
                     title = form.cleaned_data['title']
                 else:
                     title = None
-                store_document(user, file, title, form.cleaned_data['tags'], 
-                               archive_numbers)
+                create_document(user, file, title, form.cleaned_data['tags'], 
+                                archive_numbers)
                 return redirect(reverse(upload_confirmation))
             else:
                 form.errors['file'] = ['File must be a PDF document.']
@@ -189,9 +147,11 @@ def document_download(request, id, name=None):
             file_name = '%s.pdf' % document.title.translate(table).lower()
         return redirect(reverse('download-named', args=[id, file_name]))
     else:
-        with open(os.path.join(settings.DOCUMENTSTORE_PATH, 
-                               document.store_path)) as f:
-            return HttpResponse(f.read(), mimetype='application/pdf')
+        doc = docstore.get(document.store_path)
+        if doc is None:
+            raise Http404
+        with doc:
+            return HttpResponse(doc.read(), mimetype='application/pdf')
 
 @login_required
 def document_properties(request, id):
@@ -222,10 +182,8 @@ def document_thumbnail(request, id):
         n = int(request.GET.get('n', 0))
     except:
         n = 0
-    root, ext = os.path.splitext(document.store_path)
-    thumb_path = os.path.join(settings.DOCUMENTSTORE_PATH, 
-                              '%s-thumb%03d.png' % (root, n))
-    if not os.path.exists(thumb_path):
+    thumb = docstore.get_thumb(document.store_path, n)
+    if thumb is None:
         raise Http404
-    with open(thumb_path) as f:
-        return HttpResponse(f.read(), mimetype='image/png')
+    with thumb:
+        return HttpResponse(thumb.read(), mimetype='image/png')
