@@ -1,20 +1,23 @@
+/* Palette: http://www.colourlovers.com/palette/629120/Fiber_Optic_Angel */
+
 body {
   margin: 0;
   padding: 0;
-  background-color: #CDD7B6;
+  background-color: #FFFFFF;
   font:11px/1.33 Verdana, sans-serif;
 }
 
 #wrapper {
-  background-color: #FFFFFF;
-  color: black;
-  margin: 0px 15px 10px 15px;
+
+  margin: 10px 15px 10px 15px;
   padding: 10px;
+  background-color: #FCF2C6;
+  border:2px solid #608E93;
 }
 
 #header-bottom {
-  border-top: 1px solid #4C8579;
-  border-bottom: 1px solid #4C8579;
+  border-top: 1px solid #608E93;
+  border-bottom: 1px solid #608E93;
 }
 
 #header-bottom ul {
@@ -25,5 +28,47 @@ body {
 
 #header-bottom li {
   display: inline;
+}
+
+table.document-list {
+  background-color:#FFFFFF;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.document-list th {
+  border-right: 1px solid #FFFFFF;
+  color:#FFFFFF;
+  padding:2px;
+  text-transform:uppercase;
+  height:25px;
+  background-color: #99BAA4;
+  font-weight: normal;
+}
+
+.document-list tr {
+  background-color:#FFFFFF;
+  border-bottom: 1px solid #608E93;
+}
+
+.document-list td {
+  color:#50596C;
+  padding:5px;
+  text-align:left;
+}
+
+.document-list th {
+  text-align:left;
+  padding:2px;
+}
+
+.document-list td a, .document-list th a {
+  color:#608E93;
+  text-decoration:none;
+  font-weight:normal; 
+  display:block;
+}
+.document-list td a:hover, .document-list th a:hover {
+  color:#50596C;
 }
 

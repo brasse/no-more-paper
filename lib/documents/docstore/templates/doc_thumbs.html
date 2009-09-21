@@ -1,5 +1,5 @@
 {% load partition %}
-<table border="1">
+<table  class="document-list">
   {% for row in documents.object_list|partition_horizontal:columns %}
     <tr>
       {% for document in row %}
