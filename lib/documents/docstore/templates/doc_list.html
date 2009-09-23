@@ -1,6 +1,6 @@
   <table class="document-list">
     <tr>
-      <th>Title</th><th>Actions</th><th>Tags</th>
+      <th>Title</th><th>Creation time</th><th>Actions</th><th>Tags</th>
     </tr>
     {% for document in documents.object_list %}
     <tr>
@@ -12,6 +12,9 @@
             unnamed
           {% endif %}
         </a>
+      </td>
+      <td>
+        {{ document.creation_time|date:'Y-m-d H:i:s' }} 
       </td>
       <td>
         <a href="{% url documents.docstore.views.document_properties document.id %}">

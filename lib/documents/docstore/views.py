@@ -21,7 +21,9 @@ from django.template import RequestContext
 import os
 
 class SearchForm(forms.Form):
-    tags = TagField()
+    tags = TagField(required=False)
+    start_date = forms.DateField(required=False, help_text="YYYY-MM-DD")
+    end_date = forms.DateField(required=False, help_text="YYYY-MM-DD")
 
 class DocumentUploadForm(forms.Form):
     title_from_file_name = forms.BooleanField(required=False, initial=True)
@@ -94,9 +96,17 @@ def index(request):
 def document_search(request):
     form = SearchForm(request.GET)
     if form.is_valid():
-        all_documents = Document.objects.filter(user=request.user)
-        documents = TaggedItem.objects.get_by_model(all_documents, 
-                                                    form.cleaned_data['tags'])
+        filter = dict(user=request.user)
+        start_date = form.cleaned_data['start_date']
+        if not start_date is None:
+            filter['creation_time__gte'] = start_date
+        end_date = form.cleaned_data['end_date']
+        if not end_date is None:
+            filter['creation_time__lte'] = end_date
+        documents = Document.objects.filter(**filter)
+        tags = form.cleaned_data['tags']
+        if tags:
+            documents = TaggedItem.objects.get_by_model(documents, tags)
     else:
         documents = []
     return _render_index_page(request, documents, form)
