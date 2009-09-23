@@ -13,6 +13,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator
 from django.core.urlresolvers import reverse
+from django.db import transaction
 from django.http import HttpResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render_to_response
 from django.template import RequestContext
@@ -106,27 +107,33 @@ def upload_confirmation(request):
                               context_instance=RequestContext(request))
 
 @login_required
+@transaction.commit_manually
 def document_upload(request):
     if request.method == 'POST':
         # Make sure that this user has a NumberSequence instance.
         number_sequence(request.user)
+
         form = DocumentUploadForm(request.POST, request.FILES)
         if (form.is_valid()):
             file = request.FILES['file']
-            if file.content_type == 'application/pdf':
-                user = request.user
-                archive_numbers = form.cleaned_data['archive_numbers']
-                if form.cleaned_data['title_from_file_name']:
-                    title = os.path.splitext(file.name)[0]
-                elif form.cleaned_data['title'] != '':
-                    title = form.cleaned_data['title']
-                else:
-                    title = None
-                create_document(user, file, title, form.cleaned_data['tags'], 
-                                archive_numbers)
-                return redirect(reverse(upload_confirmation))
+            archive_numbers = form.cleaned_data['archive_numbers']
+            if form.cleaned_data['title_from_file_name']:
+                title = os.path.splitext(file.name)[0]
+            elif form.cleaned_data['title'] != '':
+                title = form.cleaned_data['title']
             else:
+                title = None
+            try:
+                create_document(request.user, file, title, 
+                                form.cleaned_data['tags'], archive_numbers)
+                transaction.commit()
+                return redirect(reverse(upload_confirmation))
+            except docstore.NotAPdf:
+                transaction.rollback()
                 form.errors['file'] = ['File must be a PDF document.']
+            except:
+                transaction.rollback()
+                raise
     else:
         form = DocumentUploadForm()
     return render_to_response('upload.html', dict(form=form),

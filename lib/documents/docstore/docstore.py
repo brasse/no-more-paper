@@ -10,6 +10,12 @@ import time
 
 THUMB_NAME_FORMAT = '%s-thumb%03d.png'
 
+class Error(Exception):
+    pass
+
+class NotAPdf(Error):
+    pass
+
 def _prepare_path(document_id, creation_time, user_name):
     date_str = time.strftime('%Y%m%d', creation_time)
     time_str = time.strftime('%H%M%S', creation_time)
@@ -41,6 +47,12 @@ def generate_thumbs(pdf, thumb_width):
         pass
     return i
 
+def is_pdf(pdf):
+    PDF_MAGIC = '%PDF'
+    with open(pdf) as f:
+        magic = f.read(len(PDF_MAGIC))
+        return magic == PDF_MAGIC
+
 def store(file, user_name, document_id, creation_time, 
           thumb_width=None, store_path=None):
     '''
@@ -57,6 +69,10 @@ def store(file, user_name, document_id, creation_time,
     with open(full_path, 'wb') as f:
         for chunk in file.chunks():
             f.write(chunk)
+
+    if not is_pdf(full_path):
+        os.remove(full_path)
+        raise NotAPdf
 
     generate_thumbs(full_path, thumb_width)
 
