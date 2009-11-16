@@ -26,7 +26,7 @@ class SearchForm(forms.Form):
     end_date = forms.DateField(required=False, help_text="YYYY-MM-DD")
 
 class DocumentUploadForm(forms.Form):
-    title_from_file_name = forms.BooleanField(required=False, initial=True)
+    title_from_file_name = forms.BooleanField(required=False, initial=False)
     title = forms.CharField(required=False)
     tags = TagField(required=False)
     file = forms.FileField()
@@ -176,7 +176,10 @@ def document_properties(request, id):
     if request.method == 'POST':
         form = DocumentPropertiesForm(request.POST)
         if form.is_valid():
-            document.title = form.cleaned_data['title']
+            if form.cleaned_data['title'] != '':
+                document.title = form.cleaned_data['title']
+            else:
+                document.title = None
             document.creation_time = form.cleaned_data['creation_time']
             document.save()
             Tag.objects.update_tags(document, form.cleaned_data['tags'])
