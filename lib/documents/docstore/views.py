@@ -55,6 +55,18 @@ def create_document(user, uploaded_file, title, tags, archive_numbers):
     d.store_path = relative_path
     d.save()
 
+@login_required
+def delete_confirmation(request):
+    return render_to_response('deleted.html', 
+                              context_instance=RequestContext(request))
+
+@login_required
+def document_delete(request, id):
+    document = get_object_or_404(Document, user=request.user, id=id)
+    docstore.delete(document.store_path)
+    document.delete()
+    return redirect(reverse(delete_confirmation))
+
 def number_sequence(user):
     try:
         seq = user.numbersequence

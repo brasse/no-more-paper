@@ -4,6 +4,7 @@ from PythonMagick import Image
 
 from django.conf import settings
 
+import glob
 import itertools
 import os
 import time
@@ -77,6 +78,18 @@ def store(file, user_name, document_id, creation_time,
     generate_thumbs(full_path, thumb_width)
 
     return relative_path
+
+def delete(path, store_path=None):
+    '''
+    Deletes document at path (and associated thumbs).
+    '''    
+    if store_path is None:
+        store_path = settings.DOCUMENTSTORE_PATH
+
+    root, ext = os.path.splitext(path)
+    files = glob.glob(os.path.join(store_path, root + '*'))
+    for file in files:
+        os.remove(file)
 
 def get(path, store_path=None):
     '''

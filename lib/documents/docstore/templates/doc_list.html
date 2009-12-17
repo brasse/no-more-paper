@@ -20,6 +20,10 @@
         <a href="{% url documents.docstore.views.document_properties document.id %}">
           properties
         </a>
+        <a href="{% url documents.docstore.views.document_delete document.id %}"
+           onclick="return confirm('About to delete document.')">
+          delete
+        </a>
       </td>
       <td>
         {% for tag in document.tags %}

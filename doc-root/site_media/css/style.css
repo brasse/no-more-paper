@@ -66,7 +66,6 @@ table.document-list {
   color:#608E93;
   text-decoration:none;
   font-weight:normal; 
-  display:block;
 }
 .document-list td a:hover, .document-list th a:hover {
   color:#50596C;
