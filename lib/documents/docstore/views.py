@@ -19,6 +19,7 @@ from django.shortcuts import get_object_or_404, redirect, render_to_response
 from django.template import RequestContext
 
 import os
+from urllib import urlencode
 
 class SearchForm(forms.Form):
     tags = TagField(required=False)
@@ -75,7 +76,7 @@ def number_sequence(user):
         seq.user = user
         seq.save()
 
-def _render_index_page(request, document_list, form):
+def _render_index_page(request, document_list, form, search_terms=[]):
     paginator = Paginator(document_list, 
                           settings.THUMB_COLUMNS * settings.THUMB_ROWS)
 
@@ -90,10 +91,30 @@ def _render_index_page(request, document_list, form):
         page = paginator.num_pages
 
     documents = paginator.page(page)
+    use_thumbs = 'thumbs' in request.GET    
 
-    use_thumbs = 'thumbs' in request.GET
+    def get_query(to_page, use_thumbs=use_thumbs):
+        query = search_terms[:]
+        if to_page:
+            query.append(('page', to_page))
+        if use_thumbs:
+            query.append(('thumbs', ''))
+        return urlencode(query)
+    next_query = get_query(documents.next_page_number() 
+                           if documents.has_next() 
+                           else None)
+    prev_query = get_query(documents.previous_page_number()
+                           if documents.has_previous() 
+                           else None)
+    thumbs_query = get_query(page, True)
+    list_query = get_query(page, False)
+
     return render_to_response('index.html', 
                               dict(documents=documents, 
+                                   list_query=list_query,
+                                   thumbs_query=thumbs_query,
+                                   prev_query=prev_query,
+                                   next_query=next_query,
                                    form=form, use_thumbs=use_thumbs,
                                    columns=settings.THUMB_COLUMNS),
                               context_instance=RequestContext(request))
@@ -108,20 +129,24 @@ def index(request):
 def document_search(request):
     form = SearchForm(request.GET)
     if form.is_valid():
+        search_terms = []
         filter = dict(user=request.user)
         start_date = form.cleaned_data['start_date']
         if not start_date is None:
             filter['creation_time__gte'] = start_date
+            search_terms.append(('start_date', start_date))
         end_date = form.cleaned_data['end_date']
         if not end_date is None:
             filter['creation_time__lte'] = end_date
+            search_terms.append(('end_date', end_date))
         documents = Document.objects.filter(**filter)
         tags = form.cleaned_data['tags']
         if tags:
             documents = TaggedItem.objects.get_by_model(documents, tags)
+            search_terms.append(('tags', tags))
     else:
         documents = []
-    return _render_index_page(request, documents, form)
+    return _render_index_page(request, documents, form, search_terms)
 
 @login_required
 def upload_confirmation(request):

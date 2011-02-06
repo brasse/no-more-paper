@@ -8,8 +8,8 @@
     </form>
   </div>
 
-  <a href="?page={{ documents.number }}">list</a>
-  <a href="?thumbs&page={{ documents.number }}">thumbnails</a>
+  <a href="?{{ list_query }}">list</a>
+  <a href="?{{ thumbs_query }}">thumbnails</a>
   {% if use_thumbs %}
     {% include 'doc_thumbs.html' %}
   {% else %}
@@ -17,21 +17,13 @@
   {% endif %}
   <div>
     {% if documents.has_previous %}
-      {% if use_thumbs %}
-        <a href="?thumbs&page={{ documents.previous_page_number }}">previous</a>
-      {% else %}
-        <a href="?page={{ documents.previous_page_number }}">previous</a>
-      {% endif %}
+      <a href="?{{ prev_query }}">next</a>
     {% endif %}
     <span>
       Page {{ documents.number }} of {{ documents.paginator.num_pages }}.
     </span>
     {% if documents.has_next %}
-      {% if use_thumbs %}
-        <a href="?thumbs&page={{ documents.next_page_number }}">next</a>
-      {% else %}
-        <a href="?page={{ documents.next_page_number }}">next</a>
-      {% endif %}
+      <a href="?{{ next_query }}">next</a>
     {% endif %}
   </div>
 {% endblock %}
